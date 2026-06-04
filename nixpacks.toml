@@ -1,8 +1,0 @@
-[phases.setup]
-nixPkgs = ["php82", "php82Extensions.pdo", "php82Extensions.pdo_sqlite", "php82Extensions.mbstring", "php82Extensions.tokenizer", "php82Extensions.xml", "php82Extensions.curl", "php82Extensions.zip", "composer"]
-
-[phases.build]
-cmds = ["composer install --no-dev --optimize-autoloader", "chmod +x start.sh"]
-
-[start]
-cmd = "bash start.sh"

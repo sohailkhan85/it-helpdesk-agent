@@ -13,39 +13,34 @@ class AiAgentController extends Controller
         return view('helpdesk');
     }
 
-    public function ask(Request $request)
-    {
-        $history = $request->input('history', []);
+public function ask(Request $request)
+{
+    $history = $request->input('history', []);
 
-        $history[] = [
-            'role'    => 'user',
-            'content' => $request->input('question', 'Hello!')
-        ];
+    $history[] = [
+        'role'    => 'user',
+        'content' => $request->input('question', 'Hello!')
+    ];
 
-        $response = Claude::messages()->create([
-            'model'      => 'claude-sonnet-4-5-20250929',
-            'max_tokens' => 1024,
-            'system'     => 'You are an expert IT Helpdesk Assistant for a managed IT services company. 
-                             You specialize in networking, surveillance systems, fiber optics, 
-                             and general IT infrastructure support. 
-                             Give concise, professional answers.
-                             If you need more info to diagnose an issue, ask one question at a time.',
-            'messages'   => $history
-        ]);
+    $response = Claude::messages()->create([
+        'model'      => 'claude-sonnet-4-5-20250929',
+        'max_tokens' => 1024,
+        'system'     => config('branding.system_prompt'),
+        'messages'   => $history
+    ]);
 
-        $answer = $response->content[0]['text'];
+    $answer = $response->content[0]['text'];
 
-        $history[] = [
-            'role'    => 'assistant',
-            'content' => $answer
-        ];
+    $history[] = [
+        'role'    => 'assistant',
+        'content' => $answer
+    ];
 
-        return response()->json([
-            'answer'  => $answer,
-            'history' => $history
-        ]);
-    }
-
+    return response()->json([
+        'answer'  => $answer,
+        'history' => $history
+    ]);
+}
     public function saveLead(Request $request)
     {
         $request->validate([
@@ -63,4 +58,32 @@ class AiAgentController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function dashboard()
+    {
+        $leads = DB::table('helpdesk_leads')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+        return view('dashboard', compact('leads'));
+    }
+    public function export()
+    {
+        $leads = DB::table('helpdesk_leads')->orderBy('created_at', 'desc')->get();
+
+        $csv = "ID,Name,Email,Issue,Date\n";
+        foreach ($leads as $lead) {
+            $csv .= "{$lead->id},{$lead->name},{$lead->email},\"{$lead->issue}\",{$lead->created_at}\n";
+        }
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="leads.csv"',
+        ]);
+    }
+
+    public function home()
+{
+    return view('home');
+}
 }

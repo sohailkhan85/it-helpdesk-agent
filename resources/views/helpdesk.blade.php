@@ -1,14 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT Helpdesk AI Agent</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-</head>
-<body class="bg-gray-100 h-screen flex items-center justify-center">
+@extends('layouts.app')
+
+@push('scripts_head')
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+@endpush
+
+@section('content')
+<script>
+    const BRANDING = {
+        welcomeMsg:   "{{ config('branding.welcome_msg') }}",
+        placeholder:  "{{ config('branding.placeholder') }}",
+        primaryColor: "{{ config('branding.primary_color') }}",
+    };
+</script>
 
 {{-- Lead Capture Modal --}}
 <div id="lead-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -40,14 +43,20 @@
 </div>
 
 {{-- Chat Window --}}
-<div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl flex flex-col h-[90vh]">
+<div class="flex items-center justify-center py-6 px-4">
+<div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl flex flex-col" style="height: 80vh;">
 
-    {{-- Header --}}
-    <div class="bg-blue-700 text-white px-6 py-4 rounded-t-2xl flex items-center gap-3">
-        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-lg">🤖</div>
+    {{-- Chat Header --}}
+    @php $color = config('branding.primary_color'); @endphp
+    <div class="text-white px-6 py-4 rounded-t-2xl flex items-center gap-3"
+         style="background-color: {{ $color }}">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg"
+             style="background-color: rgba(255,255,255,0.2)">
+            {{ config('branding.logo_emoji') }}
+        </div>
         <div>
-            <div class="font-bold text-lg">IT Helpdesk Assistant</div>
-            <div class="text-blue-200 text-sm">Powered by AI • Always Online</div>
+            <div class="font-bold text-lg">{{ config('branding.company_name') }}</div>
+            <div class="text-sm opacity-75">{{ config('branding.tagline') }}</div>
         </div>
         <div class="ml-auto flex items-center gap-2">
             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -56,19 +65,15 @@
     </div>
 
     {{-- Chat Messages --}}
-    <div id="chat-box" class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-        <div class="flex gap-3">
-            <div class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center text-white text-sm flex-shrink-0">🤖</div>
-            <div class="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 max-w-md text-gray-800 text-sm">
-                Hello! I'm your IT Helpdesk Assistant. I specialize in networking, surveillance systems, and IT infrastructure. How can I help you today?
-            </div>
-        </div>
+    <div id="chat-box" class="flex-1 overflow-y-auto px-6 py-4">
+        {{-- Welcome message injected by JS --}}
     </div>
 
     {{-- Typing Indicator --}}
     <div id="typing" class="hidden px-6 pb-2">
         <div class="flex gap-3 items-center">
-            <div class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center text-white text-sm">🤖</div>
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm"
+                 style="background-color: {{ $color }}">🤖</div>
             <div class="bg-gray-100 rounded-2xl px-4 py-3 text-gray-500 text-sm flex gap-1 items-center">
                 <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay:0ms"></span>
                 <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay:150ms"></span>
@@ -88,7 +93,8 @@
                 onkeydown="handleKey(event)"
             ></textarea>
             <button onclick="sendMessage()" id="send-btn"
-                class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-xl text-sm font-medium transition">
+                class="text-white px-5 py-3 rounded-xl text-sm font-medium transition hover:opacity-90"
+                style="background-color: {{ $color }}">
                 Send
             </button>
         </div>
@@ -96,8 +102,17 @@
     </div>
 
 </div>
+</div>
 
+@endsection
+
+@push('scripts')
 <script>
+    window.addEventListener('load', () => {
+        document.getElementById('user-input').placeholder = BRANDING.placeholder;
+        appendMessage('assistant', BRANDING.welcomeMsg);
+    });
+
     let history = [];
     let messageCount = 0;
     let leadCaptured = false;
@@ -115,18 +130,41 @@
         const isUser = role === 'user';
 
         const wrapper = document.createElement('div');
-        wrapper.className = `flex gap-3 ${isUser ? 'justify-end' : ''}`;
+        wrapper.className = 'flex gap-3 w-full';
+        wrapper.style.marginBottom = '12px';
 
         const avatar = document.createElement('div');
-        avatar.className = `w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${isUser ? 'bg-green-600 text-white order-2' : 'bg-blue-700 text-white'}`;
+        avatar.className = 'w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0';
+        avatar.style.cssText = `background:${isUser ? '#16a34a' : BRANDING.primaryColor}; color:white;`;
         avatar.textContent = isUser ? '👤' : '🤖';
 
         const bubble = document.createElement('div');
-        bubble.className = `rounded-2xl px-4 py-3 max-w-md text-sm prose prose-sm ${isUser ? 'bg-blue-700 text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`;
-        bubble.innerHTML = isUser ? content : marked.parse(content);
+        bubble.style.cssText = `
+            padding: 10px 16px;
+            border-radius: 16px;
+            max-width: 75%;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            background: ${isUser ? BRANDING.primaryColor : '#f3f4f6'};
+            color: ${isUser ? 'white' : '#1f2937'};
+        `;
 
-        wrapper.appendChild(avatar);
-        wrapper.appendChild(bubble);
+        if (isUser) {
+            bubble.textContent = content;
+        } else {
+            bubble.innerHTML = marked.parse(content);
+        }
+
+        if (isUser) {
+            wrapper.style.justifyContent = 'flex-end';
+            wrapper.appendChild(bubble);
+            wrapper.appendChild(avatar);
+        } else {
+            wrapper.appendChild(avatar);
+            wrapper.appendChild(bubble);
+        }
+
         box.appendChild(wrapper);
         box.scrollTop = box.scrollHeight;
     }
@@ -139,14 +177,14 @@
         input.value = '';
         messageCount++;
 
-        // Show lead modal after first message if not captured yet
         if (messageCount === 1 && !leadCaptured) {
-            appendMessage('user', question);
             pendingQuestion = question;
+            appendMessage('user', question);
             document.getElementById('lead-modal').classList.remove('hidden');
             return;
         }
 
+        appendMessage('user', question);
         await callApi(question);
     }
 
@@ -162,21 +200,15 @@
 
         error.classList.add('hidden');
 
-        // Save lead to database
         await fetch('/api/save-lead', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name,
-                email,
-                issue: pendingQuestion
-            })
+            body: JSON.stringify({ name, email, issue: pendingQuestion })
         });
 
         leadCaptured = true;
         document.getElementById('lead-modal').classList.add('hidden');
 
-        // Continue with the pending question
         if (pendingQuestion) {
             await callApi(pendingQuestion);
             pendingQuestion = null;
@@ -193,6 +225,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
                 },
                 body: JSON.stringify({ question, history })
             });
@@ -210,6 +243,4 @@
         }
     }
 </script>
-
-</body>
-</html>
+@endpush

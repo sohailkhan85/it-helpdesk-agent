@@ -72,13 +72,20 @@
                     <td class="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">
                         {{ \Carbon\Carbon::parse($lead->created_at)->format('M d, Y h:i A') }}
                     </td>
-                    <td class="px-6 py-4">
-                        <a href="mailto:{{ $lead->email }}?subject=Following up on your IT issue&body=Hi {{ $lead->name }}, I wanted to follow up on your recent IT issue: {{ urlencode($lead->issue) }}"
-                            class="text-white px-3 py-1 rounded-lg text-xs font-medium transition hover:opacity-80"
-                            style="background-color: {{ $color }}">
-                            Follow Up
-                        </a>
-                    </td>
+<td class="px-6 py-4 flex gap-2">
+    <a href="mailto:{{ $lead->email }}?subject=Following up on your IT issue"
+        class="text-white px-3 py-1 rounded-lg text-xs font-medium transition hover:opacity-80"
+        style="background-color: {{ $color }}">
+        Follow Up
+    </a>
+
+    @if($lead->transcript)
+    <button onclick="showTranscript({{ $lead->id }})"
+        class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-lg text-xs font-medium transition">
+        View Chat
+    </button>
+    @endif
+</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -98,5 +105,56 @@
 
     </div>
 </div>
+{{-- Transcript Modal --}}
+<div id="transcript-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+        <div class="px-6 py-4 border-b flex items-center justify-between"
+             style="background-color: {{ $color }}">
+            <h3 class="font-bold text-white">💬 Conversation Transcript</h3>
+            <button onclick="closeTranscript()" class="text-white opacity-75 hover:opacity-100 text-xl">✕</button>
+        </div>
+        <div id="transcript-content" class="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+        </div>
+    </div>
+</div>
 
+{{-- Transcript Data --}}
+<script>
+const transcripts = {
+    @foreach($leads as $lead)
+        @if($lead->transcript)
+        {{ $lead->id }}: {!! $lead->transcript !!},
+        @endif
+    @endforeach
+};
+
+function showTranscript(id) {
+    const messages = transcripts[id] || [];
+    const container = document.getElementById('transcript-content');
+    container.innerHTML = '';
+
+    messages.forEach(msg => {
+        const isUser = msg.role === 'user';
+        const div = document.createElement('div');
+        div.style.cssText = `
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 85%;
+            margin-left: ${isUser ? 'auto' : '0'};
+            background: ${isUser ? '{{ $color }}' : '#f3f4f6'};
+            color: ${isUser ? 'white' : '#1f2937'};
+            margin-bottom: 8px;
+        `;
+        div.textContent = msg.content;
+        container.appendChild(div);
+    });
+
+    document.getElementById('transcript-modal').classList.remove('hidden');
+}
+
+function closeTranscript() {
+    document.getElementById('transcript-modal').classList.add('hidden');
+}
+</script>
 @endsection

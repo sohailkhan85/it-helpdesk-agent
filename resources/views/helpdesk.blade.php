@@ -108,15 +108,17 @@
 
 @push('scripts')
 <script>
-    window.addEventListener('load', () => {
-        document.getElementById('user-input').placeholder = BRANDING.placeholder;
-        appendMessage('assistant', BRANDING.welcomeMsg);
-    });
-
+    // Global variables — declared ONCE at top
     let history = [];
     let messageCount = 0;
     let leadCaptured = false;
     let pendingQuestion = null;
+    let leadEmail = null;
+
+    window.addEventListener('load', () => {
+        document.getElementById('user-input').placeholder = BRANDING.placeholder;
+        appendMessage('assistant', BRANDING.welcomeMsg);
+    });
 
     function handleKey(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -203,10 +205,16 @@
         await fetch('/api/save-lead', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, issue: pendingQuestion })
+            body: JSON.stringify({
+                name,
+                email,
+                issue: pendingQuestion,
+                transcript: JSON.stringify([])
+            })
         });
 
         leadCaptured = true;
+        leadEmail = email;
         document.getElementById('lead-modal').classList.add('hidden');
 
         if (pendingQuestion) {
@@ -234,7 +242,22 @@
             history = data.history;
             appendMessage('assistant', data.answer);
 
+            if (leadEmail) {
+                fetch('/api/update-transcript', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email:      leadEmail,
+                        transcript: JSON.stringify(history)
+                    })
+                })
+                .then(res => res.json())
+                .then(data => console.log('Transcript saved:', data))
+                .catch(err => console.log('Transcript error:', err));
+            }
+
         } catch (err) {
+            console.log('Error:', err);
             appendMessage('assistant', '❌ Something went wrong. Please try again.');
         } finally {
             document.getElementById('typing').classList.add('hidden');

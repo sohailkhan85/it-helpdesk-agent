@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use ClaudePhp\Laravel\Facades\Claude;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Mail\NewLeadAlert;
+use Illuminate\Support\Facades\Mail;
 
 class AiAgentController extends Controller
 {
@@ -41,23 +43,29 @@ public function ask(Request $request)
         'history' => $history
     ]);
 }
-    public function saveLead(Request $request)
-    {
-        $request->validate([
-            'name'  => 'required|string|max:100',
-            'email' => 'required|email|max:100',
-        ]);
+public function saveLead(Request $request)
+{
+    $request->validate([
+        'name'  => 'required|string|max:100',
+        'email' => 'required|email|max:100',
+    ]);
 
-        // Save to database
-        DB::table('helpdesk_leads')->insert([
-            'name'       => $request->input('name'),
-            'email'      => $request->input('email'),
-            'issue'      => $request->input('issue', ''),
-            'created_at' => now(),
-        ]);
+    $name  = $request->input('name');
+    $email = $request->input('email');
+    $issue = $request->input('issue', 'No issue provided'); // ← default value
 
-        return response()->json(['success' => true]);
-    }
+    DB::table('helpdesk_leads')->insert([
+        'name'       => $name,
+        'email'      => $email,
+        'issue'      => $issue,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Mail::to(env('ALERT_EMAIL'))->send(new NewLeadAlert($name, $email, $issue));
+
+    return response()->json(['success' => true]);
+}
 
     public function dashboard()
     {
@@ -83,7 +91,17 @@ public function ask(Request $request)
     }
 
     public function home()
-{
-    return view('home');
-}
+    {
+        return view('home');
+    }
+    public function updateTranscript(Request $request)
+    {
+        DB::table('helpdesk_leads')
+            ->where('email', $request->input('email'))
+            ->orderBy('id', 'desc')
+            ->limit(1)
+            ->update(['transcript' => $request->input('transcript')]);
+
+        return response()->json(['success' => true]);
+    }
 }

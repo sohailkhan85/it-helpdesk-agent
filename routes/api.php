@@ -1,13 +1,15 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AiAgentController;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// 5 messages per day per IP
+Route::middleware(['throttle:5,1440'])->group(function () {
+    Route::post('/ask-ai', [AiAgentController::class, 'ask']);
+});
 
-Route::post('/ask-ai', [AiAgentController::class, 'ask']);
-Route::post('/save-lead', [AiAgentController::class, 'saveLead']);
-Route::post('/update-transcript', [AiAgentController::class, 'updateTranscript']);
+// 3 lead submissions per day per IP
+Route::middleware(['throttle:3,1440'])->group(function () {
+    Route::post('/save-lead', [AiAgentController::class, 'saveLead']);
+    Route::post('/update-transcript', [AiAgentController::class, 'updateTranscript']);
+});

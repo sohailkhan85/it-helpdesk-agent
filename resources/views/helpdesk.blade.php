@@ -108,7 +108,7 @@
 
 @push('scripts')
 <script>
-    // Global variables — declared ONCE at top
+    // Global variables
     let history = [];
     let messageCount = 0;
     let leadCaptured = false;
@@ -169,6 +169,13 @@
 
         box.appendChild(wrapper);
         box.scrollTop = box.scrollHeight;
+    }
+
+    function lockChat() {
+        document.getElementById('send-btn').disabled = true;
+        document.getElementById('user-input').disabled = true;
+        document.getElementById('user-input').placeholder = '🔒 Demo limit reached — visit aihelpswift.com to get started!';
+        document.getElementById('user-input').style.background = '#f3f4f6';
     }
 
     async function sendMessage() {
@@ -237,6 +244,13 @@
                 },
                 body: JSON.stringify({ question, history })
             });
+
+            // Rate limit reached
+            if (res.status === 429) {
+                appendMessage('assistant', `⏳ You've used all 5 free demo messages!\n\nLike what you see? Get a full AI agent for your business starting at just $25!\n\n🌐 Website: https://aihelpswift.com\n🛒 Order now on Fiverr: http://www.fiverr.com/s/Q7ZbAbR`);
+                lockChat();
+                return;
+            }
 
             const data = await res.json();
             history = data.history;

@@ -41,7 +41,13 @@
                 {{ request()->is('dashboard') ? 'bg-white bg-opacity-20' : 'hover:bg-white hover:bg-opacity-10' }}">
                 📊 Dashboard
             </a>
+            <a href="/pdfchat"
+                class="px-4 py-2 rounded-xl text-sm font-medium transition
+                {{ request()->is('pdfchat') ? 'bg-white bg-opacity-20' : 'hover:bg-white hover:bg-opacity-10' }}">
+                📄 PDF Chat
+            </a>
         </div>
+        
 
         {{-- Status Badge --}}
         <div class="flex items-center gap-2 bg-white bg-opacity-10 px-3 py-1 rounded-full">

@@ -2,12 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AiAgentController;
+use App\Http\Controllers\PdfChatController;
+
+
 
 Route::get('/', function () {
     return view('welcome');
 });
 
 
+Route::get('/pdfchat', [PdfChatController::class, 'index']);
 
 Route::get('/helpdesk', [AiAgentController::class, 'index']);
 

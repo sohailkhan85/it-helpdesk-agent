@@ -2,6 +2,25 @@
 
 @push('scripts_head')
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+.markdown-content table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: 100%;
+}
+.markdown-content ul, .markdown-content ol {
+    padding-left: 1.2rem;
+}
+.markdown-content pre {
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.markdown-content * {
+    max-width: 100%;
+}
+</style>
 @endpush
 
 @section('content')

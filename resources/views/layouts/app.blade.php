@@ -46,6 +46,11 @@
                 {{ request()->is('pdfchat') ? 'bg-white bg-opacity-20' : 'hover:bg-white hover:bg-opacity-10' }}">
                 📄 PDF Chat
             </a>
+            <a href="/websiteai"
+    class="px-4 py-2 rounded-xl text-sm font-medium transition
+    {{ request()->is('websiteai') ? 'bg-white bg-opacity-20' : 'hover:bg-white hover:bg-opacity-10' }}">
+    🌐 Website AI
+            </a>
         </div>
         
 

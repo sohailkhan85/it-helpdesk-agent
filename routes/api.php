@@ -3,6 +3,7 @@
 use App\Http\Controllers\AiAgentController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PdfChatController;
+use App\Http\Controllers\WebsiteAgentController;
 
 // For Local
 
@@ -38,3 +39,14 @@ Route::middleware(['throttle:10,1440'])->group(function () {
 
     Route::post('/pdf-upload', [PdfChatController::class, 'upload']);
     Route::post('/pdf-ask', [PdfChatController::class, 'ask']);
+
+   
+
+Route::middleware(['throttle:3,1440'])->group(function () {
+    Route::post('/website-scrape', [WebsiteAgentController::class, 'scrape']);
+});
+
+Route::middleware(['throttle:10,1440'])->group(function () {
+    Route::post('/website-ask', [WebsiteAgentController::class, 'ask']);
+    Route::post('/website-lead', [WebsiteAgentController::class, 'saveLead']);
+});

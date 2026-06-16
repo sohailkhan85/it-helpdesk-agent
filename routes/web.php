@@ -3,12 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AiAgentController;
 use App\Http\Controllers\PdfChatController;
+use App\Http\Controllers\WebsiteAgentController;
+
+
 
 
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/websiteai', [WebsiteAgentController::class, 'index']);
 
 
 Route::get('/pdfchat', [PdfChatController::class, 'index']);

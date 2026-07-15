@@ -50,3 +50,9 @@ Route::middleware(['throttle:10,1440'])->group(function () {
     Route::post('/website-ask', [WebsiteAgentController::class, 'ask']);
     Route::post('/website-lead', [WebsiteAgentController::class, 'saveLead']);
 });
+
+use App\Http\Controllers\SalesEmailController;
+
+Route::middleware(['throttle:3,1440'])->group(function () {
+    Route::post('/generate-email', [SalesEmailController::class, 'generate']);
+});

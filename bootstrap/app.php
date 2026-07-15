@@ -15,7 +15,14 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->alias([
         'dashboard.auth' => \App\Http\Middleware\DashboardAuth::class,
     ]);
+    
+})
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->validateCsrfTokens(except: [
+        'webhook/whatsapp',
+    ]);
 })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
+        
     })->create();

@@ -4,8 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AiAgentController;
 use App\Http\Controllers\PdfChatController;
 use App\Http\Controllers\WebsiteAgentController;
-
-
+use App\Http\Controllers\SalesEmailController;
 
 
 
@@ -43,4 +42,12 @@ Route::post('/dashboard/login', function (\Illuminate\Http\Request $request) {
     }
     return back()->with('error', 'Invalid password. Please try again.');
 });
+
+
+Route::get('/salesemail', [SalesEmailController::class, 'index']);
+
+
+
+
+
 
